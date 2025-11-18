@@ -55,6 +55,7 @@ mvn spring-boot:run
 | `/api/v1/ledger/{id}/invite` | `POST` | 生成共享邀请（默认 24 小时有效，返回 token） |
 | `/api/v1/ledger/invite/{token}/accept` | `POST` | 接受共享邀请，自动成为成员 |
 | `/api/v1/ledger/{id}/stream` | `GET` (SSE) | 订阅账本实时事件（导入完成、成员加入等）
+| `/api/v1/dashboard/summary` | `GET` | 首页摘要（今日支出 / 月预算 / TOP3 分类）
 
 直传上传后提交导入示例：
 
