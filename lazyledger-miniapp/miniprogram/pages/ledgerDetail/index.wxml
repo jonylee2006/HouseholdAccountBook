@@ -1,0 +1,14 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">查询导入任务</view>
+    <input class="input" placeholder="输入任务ID" bindinput="onJobInput" value="{{jobId}}" />
+    <button class="btn-primary" bindtap="loadTransactions">加载流水</button>
+  </view>
+  <block wx:for="{{transactions}}" wx:key="index">
+    <view class="card">
+      <view class="detail-row">{{item.occurredAt}}</view>
+      <view class="detail-row">{{item.merchantName || '商户'}} - {{item.subject || ''}}</view>
+      <view class="detail-row">金额：￥{{item.amount}}（{{item.direction}}）</view>
+    </view>
+  </block>
+</view>

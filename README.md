@@ -12,6 +12,7 @@
 ## 目录结构
 
 - `lazyledger-backend/`：Spring Boot 3.2 项目，内含导入接口、解析器、领域模型等代码
+- `lazyledger-miniapp/`：微信小程序源码，包含首页、导入、报表、成员、个人等页面，可直接导入微信开发者工具
 
 ## 数据库关键表
 
@@ -28,6 +29,7 @@
 - MySQL 8（建议创建 `lazyledger` 数据库）
 - Redis 6
 - RabbitMQ 3.x（默认使用 guest/guest，可在 `application.yml` 覆盖）
+- 微信小程序开发工具（导入 `lazyledger-miniapp` 目录即可预览）
 - 对象存储：原生支持阿里云 OSS 与腾讯 COS，需在 `lazyledger.storage.*` 中配置凭证
 
 ## 后端快速启动

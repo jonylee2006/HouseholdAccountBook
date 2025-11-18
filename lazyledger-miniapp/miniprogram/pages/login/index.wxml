@@ -1,0 +1,8 @@
+<view class="container">
+  <view class="card">
+    <view class="title">手机号登录（示例）</view>
+    <input class="input" placeholder="输入手机号" bindinput="onPhoneInput" value="{{phone}}" />
+    <input class="input" placeholder="昵称（可选）" bindinput="onNicknameInput" value="{{nickname}}" />
+    <button class="btn-primary" bindtap="login">登录</button>
+  </view>
+</view>
