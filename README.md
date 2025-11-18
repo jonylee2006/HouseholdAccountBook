@@ -36,11 +36,12 @@ mvn spring-boot:run
 | 接口 | 方法 | 说明 |
 | --- | --- | --- |
 | `/api/v1/storage/signatures` | `POST` | 生成 OSS/COS 直传签名，返回 `url/objectKey/headers`，用于小程序直传 |
-| `/api/v1/import/jobs` | `POST` | 提交导入任务（JSON），仅需提供 `ledgerId/sourceType/objectKey` 即可 |
+| `/api/v1/import/jobs` | `POST` | 提交导入任务（JSON），仅需提供 `ledgerId/sourceType/objectKey/statementDate` |
 | `/api/v1/import/jobs/authorization` | `POST` | 基于已保存的授权记录触发远程拉取导入 |
 | `/api/v1/import/jobs/{jobId}` | `GET` | 查询导入任务状态 |
 | `/api/v1/import/jobs/{jobId}/transactions` | `GET` | 查看该任务入库的流水（仅展示预览字段） |
 | `/api/v1/import/authorizations` | `POST / GET` | 管理微信/支付宝授权凭证，用于“授权拉取”场景 |
+| `/api/v1/transactions/{id}/category` | `PUT` | 单笔修改分类，可选择保存为自定义规则 |
 
 直传上传后提交导入示例：
 
@@ -67,6 +68,6 @@ POST /api/v1/import/jobs/authorization
 
 ## 下一步计划
 
-- 更细粒度的账单分类模型接入与策略管理
+- 更细粒度的账单分类模型接入与策略管理（当前已支持：词典 + 用户规则 + 外部模型预留接口）
 - 家庭共享账本的多维度权限控制
 - 导入全链路压测 & Trace/指标输出

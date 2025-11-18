@@ -11,7 +11,7 @@ public record StatementImportRequest(
         @NotNull(message = "ledgerId 不能为空") Long ledgerId,
         @NotNull(message = "sourceType 不能为空") ImportSourceType sourceType,
         @NotBlank(message = "objectKey 不能为空") String objectKey,
-        LocalDate statementDate,
+        @NotNull(message = "statementDate 不能为空") LocalDate statementDate,
         String timezone
 ) {
     public String timezoneOrDefault() {

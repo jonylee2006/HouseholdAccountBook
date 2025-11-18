@@ -56,6 +56,9 @@ public class Transaction {
     @Lob
     private String rawPayload;
 
+    @Column(length = 64)
+    private String category;
+
     public Long getId() {
         return id;
     }
@@ -154,5 +157,13 @@ public class Transaction {
 
     public void setRawPayload(String rawPayload) {
         this.rawPayload = rawPayload;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }
