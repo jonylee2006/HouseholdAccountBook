@@ -1,0 +1,35 @@
+package com.lazyledger.importer.dto;
+
+import com.lazyledger.common.enums.ImportJobStatus;
+import com.lazyledger.common.enums.ImportSourceType;
+import com.lazyledger.ledger.domain.ImportJob;
+
+import java.time.OffsetDateTime;
+
+public record ImportJobResponse(
+        Long id,
+        Long ledgerId,
+        ImportSourceType sourceType,
+        ImportJobStatus status,
+        Integer totalCount,
+        Integer successCount,
+        Integer failureCount,
+        String errorMessage,
+        OffsetDateTime createdAt,
+        OffsetDateTime completedAt
+) {
+    public static ImportJobResponse from(ImportJob job) {
+        return new ImportJobResponse(
+                job.getId(),
+                job.getLedgerId(),
+                job.getSourceType(),
+                job.getStatus(),
+                job.getTotalCount(),
+                job.getSuccessCount(),
+                job.getFailureCount(),
+                job.getErrorMessage(),
+                job.getCreatedAt(),
+                job.getCompletedAt()
+        );
+    }
+}
