@@ -3,88 +3,87 @@ package com.lazyledger.importer.service;
 import com.lazyledger.common.enums.ImportJobStatus;
 import com.lazyledger.common.enums.ImportSourceType;
 import com.lazyledger.common.exception.BusinessException;
-import com.lazyledger.common.enums.TransactionDirection;
 import com.lazyledger.importer.dto.ImportJobResponse;
-import com.lazyledger.importer.dto.ImportResultResponse;
 import com.lazyledger.importer.dto.ImportedTransactionDto;
 import com.lazyledger.importer.dto.StatementImportRequest;
-import com.lazyledger.importer.model.StatementRecord;
-import com.lazyledger.importer.parser.StatementParser;
-import com.lazyledger.importer.parser.StatementParserFactory;
+import com.lazyledger.importer.dto.AuthorizationImportRequest;
 import com.lazyledger.ledger.domain.ImportJob;
 import com.lazyledger.ledger.domain.Ledger;
-import com.lazyledger.ledger.domain.Transaction;
+import com.lazyledger.ledger.domain.ImportAuthorization;
 import com.lazyledger.ledger.repository.ImportJobRepository;
 import com.lazyledger.ledger.repository.LedgerRepository;
 import com.lazyledger.ledger.repository.TransactionRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.lazyledger.ledger.repository.ImportAuthorizationRepository;
+import com.lazyledger.ledger.service.LedgerAccessService;
+import com.lazyledger.importer.queue.ImportJobPublisher;
+import com.lazyledger.importer.queue.ImportTaskMessage;
+import com.lazyledger.security.CurrentUserService;
+import com.lazyledger.security.UserPrincipal;
+import com.lazyledger.storage.StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class StatementImportService {
 
-    private static final Logger log = LoggerFactory.getLogger(StatementImportService.class);
-
     private final LedgerRepository ledgerRepository;
     private final ImportJobRepository importJobRepository;
     private final TransactionRepository transactionRepository;
-    private final StatementParserFactory parserFactory;
+    private final ImportAuthorizationRepository authorizationRepository;
+    private final LedgerAccessService ledgerAccessService;
+    private final StorageService storageService;
+    private final CurrentUserService currentUserService;
+    private final ImportJobPublisher importJobPublisher;
 
     public StatementImportService(LedgerRepository ledgerRepository,
                                   ImportJobRepository importJobRepository,
                                   TransactionRepository transactionRepository,
-                                  StatementParserFactory parserFactory) {
+                                  ImportAuthorizationRepository authorizationRepository,
+                                  LedgerAccessService ledgerAccessService,
+                                  StorageService storageService,
+                                  CurrentUserService currentUserService,
+                                  ImportJobPublisher importJobPublisher) {
         this.ledgerRepository = ledgerRepository;
         this.importJobRepository = importJobRepository;
         this.transactionRepository = transactionRepository;
-        this.parserFactory = parserFactory;
+        this.authorizationRepository = authorizationRepository;
+        this.ledgerAccessService = ledgerAccessService;
+        this.storageService = storageService;
+        this.currentUserService = currentUserService;
+        this.importJobPublisher = importJobPublisher;
     }
 
     @Transactional
-    public ImportResultResponse importStatement(StatementImportRequest request, MultipartFile file) {
+    public ImportJobResponse importStatement(StatementImportRequest request, MultipartFile file) {
         Ledger ledger = ledgerRepository.findById(request.ledgerId())
                 .orElseThrow(() -> new BusinessException("LEDGER_NOT_FOUND", "账本不存在"));
-        ImportJob job = createJob(request.sourceType(), ledger.getId());
-        try (InputStream inputStream = file.getInputStream()) {
-            StatementParser parser = parserFactory.getParser(request.sourceType());
-            List<StatementRecord> records = parser.parse(inputStream);
-            job.setStatus(ImportJobStatus.PROCESSING);
-            job.setTotalCount(records.size());
-            List<Transaction> transactions = records.stream()
-                    .map(record -> toTransaction(record, request, job.getId()))
-                    .collect(Collectors.toList());
+        UserPrincipal user = currentUserService.currentUser();
+        ledgerAccessService.ensureWritePermission(ledger.getId(), user.userId());
+        String objectKey = storageService.store(file, buildObjectKey(request.sourceType(), ledger.getId()));
+        ImportJob job = createJob(request.sourceType(), ledger.getId(), user.userId());
+        job.setObjectKey(objectKey);
+        importJobRepository.save(job);
+        publishJob(job);
+        return ImportJobResponse.from(job);
+    }
 
-            if (!request.dryRun()) {
-                transactionRepository.saveAll(transactions);
-            }
-            job.setSuccessCount(transactions.size());
-            job.setFailureCount(0);
-            job.setStatus(ImportJobStatus.COMPLETED);
-            job.setCompletedAt(OffsetDateTime.now());
-            importJobRepository.save(job);
-            List<ImportedTransactionDto> preview = transactions.stream()
-                    .limit(20)
-                    .map(this::toPreview)
-                    .toList();
-            return new ImportResultResponse(ImportJobResponse.from(job), preview);
-        } catch (IOException e) {
-            log.error("读取账单失败", e);
-            failJob(job, e.getMessage());
-            throw new BusinessException("IMPORT_FAILED", "读取账单文件失败");
-        } catch (Exception ex) {
-            log.error("导入账单失败", ex);
-            failJob(job, ex.getMessage());
-            throw new BusinessException("IMPORT_FAILED", ex.getMessage());
+    @Transactional
+    public ImportJobResponse importByAuthorization(AuthorizationImportRequest request) {
+        ImportAuthorization authorization = authorizationRepository.findById(request.authorizationId())
+                .orElseThrow(() -> new BusinessException("AUTH_NOT_FOUND", "授权不存在"));
+        if (!authorization.getLedgerId().equals(request.ledgerId())) {
+            throw new BusinessException("AUTH_MISMATCH", "授权与账本不匹配");
         }
+        UserPrincipal user = currentUserService.currentUser();
+        ledgerAccessService.ensureWritePermission(request.ledgerId(), user.userId());
+        ImportJob job = createJob(authorization.getSourceType(), request.ledgerId(), user.userId());
+        job.setAuthorizationId(authorization.getId());
+        importJobRepository.save(job);
+        publishJob(job);
+        return ImportJobResponse.from(job);
     }
 
     @Transactional(readOnly = true)
@@ -97,52 +96,39 @@ public class StatementImportService {
     @Transactional(readOnly = true)
     public List<ImportedTransactionDto> findTransactionsByJob(Long jobId) {
         return transactionRepository.findByImportJobId(jobId).stream()
-                .map(this::toPreview)
+                .map(transaction -> new ImportedTransactionDto(
+                        transaction.getOccurredAt(),
+                        transaction.getMerchantName(),
+                        transaction.getSubject(),
+                        transaction.getAmount(),
+                        transaction.getDirection(),
+                        transaction.getPaymentMethod()
+                ))
                 .toList();
     }
 
-    private ImportJob createJob(ImportSourceType sourceType, Long ledgerId) {
+    private ImportJob createJob(ImportSourceType sourceType, Long ledgerId, Long requestedBy) {
         ImportJob job = new ImportJob();
         job.setLedgerId(ledgerId);
+        job.setRequestedBy(requestedBy);
         job.setSourceType(sourceType);
         job.setStatus(ImportJobStatus.PENDING);
         return importJobRepository.save(job);
     }
 
-    private void failJob(ImportJob job, String message) {
-        job.setStatus(ImportJobStatus.FAILED);
-        job.setErrorMessage(message);
-        job.setCompletedAt(OffsetDateTime.now());
+    private void publishJob(ImportJob job) {
+        job.setStatus(ImportJobStatus.QUEUED);
         importJobRepository.save(job);
+        importJobPublisher.publish(new ImportTaskMessage(
+                job.getId(),
+                job.getLedgerId(),
+                job.getSourceType(),
+                job.getObjectKey(),
+                job.getAuthorizationId()
+        ));
     }
 
-    private Transaction toTransaction(StatementRecord record, StatementImportRequest request, Long jobId) {
-        if (record.occurredAt() == null) {
-            throw new BusinessException("INVALID_RECORD", "账单缺少交易时间");
-        }
-        Transaction transaction = new Transaction();
-        transaction.setLedgerId(request.ledgerId());
-        transaction.setImportJobId(jobId);
-        transaction.setSourceType(request.sourceType());
-        transaction.setOccurredAt(record.occurredAt());
-        transaction.setMerchantName(record.merchantName());
-        transaction.setSubject(record.subject());
-        transaction.setAmount(record.amount());
-        transaction.setDirection(record.direction() == null ? TransactionDirection.EXPENSE : record.direction());
-        transaction.setPaymentMethod(record.paymentMethod());
-        transaction.setReferenceId(record.referenceId());
-        transaction.setRawPayload(record.rawLine());
-        return transaction;
-    }
-
-    private ImportedTransactionDto toPreview(Transaction transaction) {
-        return new ImportedTransactionDto(
-                transaction.getOccurredAt(),
-                transaction.getMerchantName(),
-                transaction.getSubject(),
-                transaction.getAmount(),
-                transaction.getDirection(),
-                transaction.getPaymentMethod()
-        );
+    private String buildObjectKey(ImportSourceType sourceType, Long ledgerId) {
+        return sourceType.name().toLowerCase() + \"/\" + ledgerId + \"/\" + System.currentTimeMillis() + \".csv\";
     }
 }

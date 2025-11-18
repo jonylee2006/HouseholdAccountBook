@@ -1,8 +1,8 @@
 package com.lazyledger.importer.controller;
 
 import com.lazyledger.common.model.ApiResponse;
+import com.lazyledger.importer.dto.AuthorizationImportRequest;
 import com.lazyledger.importer.dto.ImportJobResponse;
-import com.lazyledger.importer.dto.ImportResultResponse;
 import com.lazyledger.importer.dto.ImportedTransactionDto;
 import com.lazyledger.importer.dto.StatementImportRequest;
 import com.lazyledger.importer.service.StatementImportService;
@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,9 +32,14 @@ public class StatementImportController {
     }
 
     @PostMapping(value = "/jobs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<ImportResultResponse> importStatement(@Valid @RequestPart("metadata") StatementImportRequest request,
-                                                             @RequestPart("file") MultipartFile file) {
+    public ApiResponse<ImportJobResponse> importStatement(@Valid @RequestPart("metadata") StatementImportRequest request,
+                                                          @RequestPart("file") MultipartFile file) {
         return ApiResponse.ok(statementImportService.importStatement(request, file));
+    }
+
+    @PostMapping("/jobs/authorization")
+    public ApiResponse<ImportJobResponse> importByAuthorization(@Valid @RequestBody AuthorizationImportRequest request) {
+        return ApiResponse.ok(statementImportService.importByAuthorization(request));
     }
 
     @GetMapping("/jobs/{jobId}")

@@ -19,6 +19,11 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 2000
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:guest}
+    password: ${RABBIT_PASSWORD:guest}
 
 server:
   port: 8080
@@ -27,5 +32,10 @@ server:
 
 lazyledger:
   storage:
-    bucket: ${STORAGE_BUCKET:mock-bucket}
-    callback-url: ${STORAGE_CALLBACK:https://example.com/callback}
+    type: ${STORAGE_TYPE:local}
+    local-base-path: ${STORAGE_LOCAL_PATH:${user.home}/lazyledger/storage}
+  import:
+    queue:
+      name: ${IMPORT_QUEUE_NAME:import.jobs.queue}
+      exchange: ${IMPORT_EXCHANGE_NAME:import.jobs.exchange}
+      routing-key: ${IMPORT_ROUTING_KEY:import.jobs.routing}

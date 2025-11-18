@@ -24,9 +24,16 @@ public class ImportJob {
     @Column(nullable = false)
     private Long ledgerId;
 
+    @Column(nullable = false)
+    private Long requestedBy;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ImportSourceType sourceType;
+
+    private String objectKey;
+
+    private Long authorizationId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -57,12 +64,36 @@ public class ImportJob {
         this.ledgerId = ledgerId;
     }
 
+    public Long getRequestedBy() {
+        return requestedBy;
+    }
+
+    public void setRequestedBy(Long requestedBy) {
+        this.requestedBy = requestedBy;
+    }
+
     public ImportSourceType getSourceType() {
         return sourceType;
     }
 
     public void setSourceType(ImportSourceType sourceType) {
         this.sourceType = sourceType;
+    }
+
+    public String getObjectKey() {
+        return objectKey;
+    }
+
+    public void setObjectKey(String objectKey) {
+        this.objectKey = objectKey;
+    }
+
+    public Long getAuthorizationId() {
+        return authorizationId;
+    }
+
+    public void setAuthorizationId(Long authorizationId) {
+        this.authorizationId = authorizationId;
     }
 
     public ImportJobStatus getStatus() {

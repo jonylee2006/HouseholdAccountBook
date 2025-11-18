@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 public record ImportJobResponse(
         Long id,
         Long ledgerId,
+        Long requestedBy,
         ImportSourceType sourceType,
         ImportJobStatus status,
         Integer totalCount,
@@ -22,6 +23,7 @@ public record ImportJobResponse(
         return new ImportJobResponse(
                 job.getId(),
                 job.getLedgerId(),
+                job.getRequestedBy(),
                 job.getSourceType(),
                 job.getStatus(),
                 job.getTotalCount(),

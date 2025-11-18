@@ -18,16 +18,31 @@ public class Ledger {
     private Long id;
 
     @Column(nullable = false)
+    private Long ownerId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private String currencyCode = "CNY";
 
+    private Double monthlyBudget;
+
     @Column(nullable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
+
     public Long getId() {
         return id;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getName() {
@@ -46,11 +61,27 @@ public class Ledger {
         this.currencyCode = currencyCode;
     }
 
+    public Double getMonthlyBudget() {
+        return monthlyBudget;
+    }
+
+    public void setMonthlyBudget(Double monthlyBudget) {
+        this.monthlyBudget = monthlyBudget;
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
