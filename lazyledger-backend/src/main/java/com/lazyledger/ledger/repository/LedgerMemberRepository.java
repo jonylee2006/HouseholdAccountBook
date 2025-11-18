@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface LedgerMemberRepository extends JpaRepository<LedgerMember, Long> {
 
     Optional<LedgerMember> findByLedgerIdAndUserIdAndStatus(Long ledgerId, Long userId, LedgerMemberStatus status);
+
+    Optional<LedgerMember> findByLedgerIdAndUserId(Long ledgerId, Long userId);
 }

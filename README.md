@@ -7,10 +7,20 @@
 - 微信/支付宝授权同步（真实 OAuth/Bearer Token 流程，可配置官方开放平台 API 地址）
 - 成员角色/权限校验，仅管理员及以上可以发起导入
 - 导入完成后调用分类微服务，同时将预算事件推送到 RabbitMQ，触发后续清算
+- 家庭共享：支持邀请链接、成员加入，以及基于 SSE 的实时账本推送
 
 ## 目录结构
 
 - `lazyledger-backend/`：Spring Boot 3.2 项目，内含导入接口、解析器、领域模型等代码
+
+## 数据库关键表
+
+- `user_account` / `ledger` / `ledger_member`：用户、账本、成员及角色权限
+- `transaction`：账本流水（支持来源标记、分类字段）
+- `classification_rule`：用户自定义分类规则
+- `ledger_invite`：共享邀请 token 记录（含失效/使用状态）
+- `import_job`：账单导入任务状态
+- `report_snapshot` / `budget`：报表与预算快照
 
 ## 环境要求
 
@@ -42,6 +52,9 @@ mvn spring-boot:run
 | `/api/v1/import/jobs/{jobId}/transactions` | `GET` | 查看该任务入库的流水（仅展示预览字段） |
 | `/api/v1/import/authorizations` | `POST / GET` | 管理微信/支付宝授权凭证，用于“授权拉取”场景 |
 | `/api/v1/transactions/{id}/category` | `PUT` | 单笔修改分类，可选择保存为自定义规则 |
+| `/api/v1/ledger/{id}/invite` | `POST` | 生成共享邀请（默认 24 小时有效，返回 token） |
+| `/api/v1/ledger/invite/{token}/accept` | `POST` | 接受共享邀请，自动成为成员 |
+| `/api/v1/ledger/{id}/stream` | `GET` (SSE) | 订阅账本实时事件（导入完成、成员加入等）
 
 直传上传后提交导入示例：
 
