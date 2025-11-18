@@ -98,7 +98,7 @@ public class ImportJobProcessor {
         if (job.getAuthorizationId() != null) {
             ImportAuthorization authorization = authorizationRepository.findById(job.getAuthorizationId())
                     .orElseThrow(() -> new BusinessException("AUTH_NOT_FOUND", "授权不存在"));
-            return remoteStatementClient.fetch(authorization);
+            return remoteStatementClient.fetch(authorization, job.getStatementDate());
         }
         throw new BusinessException("JOB_INPUT_NOT_FOUND", "任务缺少导入源");
     }

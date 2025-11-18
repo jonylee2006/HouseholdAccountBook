@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "import_job")
@@ -34,6 +35,8 @@ public class ImportJob {
     private String objectKey;
 
     private Long authorizationId;
+
+    private LocalDate statementDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -94,6 +97,14 @@ public class ImportJob {
 
     public void setAuthorizationId(Long authorizationId) {
         this.authorizationId = authorizationId;
+    }
+
+    public LocalDate getStatementDate() {
+        return statementDate;
+    }
+
+    public void setStatementDate(LocalDate statementDate) {
+        this.statementDate = statementDate;
     }
 
     public ImportJobStatus getStatus() {

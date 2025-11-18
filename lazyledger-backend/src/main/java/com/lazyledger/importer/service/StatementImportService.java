@@ -22,8 +22,6 @@ import com.lazyledger.security.UserPrincipal;
 import com.lazyledger.storage.StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 
 @Service
@@ -57,14 +55,19 @@ public class StatementImportService {
     }
 
     @Transactional
-    public ImportJobResponse importStatement(StatementImportRequest request, MultipartFile file) {
+    public ImportJobResponse importStatement(StatementImportRequest request) {
         Ledger ledger = ledgerRepository.findById(request.ledgerId())
                 .orElseThrow(() -> new BusinessException("LEDGER_NOT_FOUND", "账本不存在"));
         UserPrincipal user = currentUserService.currentUser();
         ledgerAccessService.ensureWritePermission(ledger.getId(), user.userId());
-        String objectKey = storageService.store(file, buildObjectKey(request.sourceType(), ledger.getId()));
         ImportJob job = createJob(request.sourceType(), ledger.getId(), user.userId());
-        job.setObjectKey(objectKey);
+        job.setObjectKey(request.objectKey());
+        job.setStatementDate(request.statementDate());
+        try (var ignored = storageService.openStream(request.objectKey())) {
+            // 仅用于校验对象是否存在
+        } catch (Exception ex) {
+            throw new BusinessException("OBJECT_NOT_FOUND", "未找到账单文件或无权限访问");
+        }
         importJobRepository.save(job);
         publishJob(job);
         return ImportJobResponse.from(job);
@@ -81,6 +84,7 @@ public class StatementImportService {
         ledgerAccessService.ensureWritePermission(request.ledgerId(), user.userId());
         ImportJob job = createJob(authorization.getSourceType(), request.ledgerId(), user.userId());
         job.setAuthorizationId(authorization.getId());
+        job.setStatementDate(request.statementDate());
         importJobRepository.save(job);
         publishJob(job);
         return ImportJobResponse.from(job);
@@ -124,7 +128,8 @@ public class StatementImportService {
                 job.getLedgerId(),
                 job.getSourceType(),
                 job.getObjectKey(),
-                job.getAuthorizationId()
+                job.getAuthorizationId(),
+                job.getStatementDate()
         ));
     }
 

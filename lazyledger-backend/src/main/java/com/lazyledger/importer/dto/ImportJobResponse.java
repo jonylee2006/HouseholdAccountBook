@@ -6,6 +6,8 @@ import com.lazyledger.ledger.domain.ImportJob;
 
 import java.time.OffsetDateTime;
 
+import java.time.LocalDate;
+
 public record ImportJobResponse(
         Long id,
         Long ledgerId,
@@ -16,6 +18,8 @@ public record ImportJobResponse(
         Integer successCount,
         Integer failureCount,
         String errorMessage,
+        String objectKey,
+        LocalDate statementDate,
         OffsetDateTime createdAt,
         OffsetDateTime completedAt
 ) {
@@ -30,6 +34,8 @@ public record ImportJobResponse(
                 job.getSuccessCount(),
                 job.getFailureCount(),
                 job.getErrorMessage(),
+                job.getObjectKey(),
+                job.getStatementDate(),
                 job.getCreatedAt(),
                 job.getCompletedAt()
         );
