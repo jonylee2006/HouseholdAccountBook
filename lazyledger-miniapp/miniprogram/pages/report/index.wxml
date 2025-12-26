@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">选择月份</view>
+    <picker mode="date" fields="month" value="{{period}}" bindchange="onPeriodChange">
+      <view class="picker">{{period}}</view>
+    </picker>
+    <button class="btn-primary" bindtap="loadReport">查询</button>
+  </view>
+
+  <view class="card" wx:if="{{report}}">
+    <view class="section-title">{{report.period}} 概览</view>
+    <view>总支出：￥{{report.totalExpense}}</view>
+    <view class="section-title">TOP 分类</view>
+    <block wx:for="{{report.topCategories}}" wx:key="category">
+      <view class="category-item">
+        <text>{{item.category || '未分类'}}</text>
+        <text>￥{{item.amount}}</text>
+      </view>
+    </block>
+  </view>
+</view>

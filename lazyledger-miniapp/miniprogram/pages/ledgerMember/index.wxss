@@ -1,0 +1,7 @@
+@import "../../app.wxss";
+
+.token {
+  margin-top: 16rpx;
+  word-break: break-all;
+  color: #333;
+}

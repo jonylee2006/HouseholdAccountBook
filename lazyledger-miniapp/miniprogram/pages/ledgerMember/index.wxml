@@ -1,0 +1,14 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">生成邀请</view>
+    <input class="input" placeholder="有效期分钟 (10-1440)" type="number" bindinput="onExpireInput" value="{{expireMinutes}}" />
+    <button class="btn-primary" bindtap="createInvite">生成邀请</button>
+    <view wx:if="{{inviteToken}}" class="token">Token：{{inviteToken}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">接受邀请</view>
+    <input class="input" placeholder="邀请Token" bindinput="onTokenInput" value="{{token}}" />
+    <button class="btn-primary" bindtap="acceptInvite">加入账本</button>
+  </view>
+</view>

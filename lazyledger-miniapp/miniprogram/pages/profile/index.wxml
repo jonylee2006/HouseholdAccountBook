@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">当前用户</view>
+    <view>用户ID：{{userId || '未登录'}}</view>
+    <button size="mini" bindtap="goLogin">切换账号</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">切换账本</view>
+    <input class="input" placeholder="账本ID" bindinput="onLedgerInput" value="{{ledgerId}}" />
+    <button class="btn-primary" bindtap="setLedger">设置当前账本</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">创建账本</view>
+    <input class="input" placeholder="账本名称" bindinput="onLedgerNameInput" value="{{ledgerName}}" />
+    <input class="input" placeholder="币种（默认CNY）" bindinput="onCurrencyInput" value="{{currency}}" />
+    <input class="input" placeholder="月预算（可选）" type="number" bindinput="onBudgetInput" value="{{monthlyBudget}}" />
+    <button class="btn-primary" bindtap="createLedger">创建</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">订阅权益</view>
+    <input class="input" placeholder="等级（free/vip等）" bindinput="onLevelInput" value="{{level}}" />
+    <input class="input" placeholder="到期时间 2025-12-31T00:00:00" bindinput="onExpireInput" value="{{expiresAt}}" />
+    <button class="btn-primary" bindtap="updateSubscription">更新订阅</button>
+  </view>
+</view>

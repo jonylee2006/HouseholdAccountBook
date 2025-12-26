@@ -1,0 +1,22 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">导入参数</view>
+    <picker mode="selector" value="{{sourceIndex}}" range="{{sources}}" bindchange="onSourceChange">
+      <view class="picker">来源：{{sources[sourceIndex]}}</view>
+    </picker>
+    <picker mode="date" value="{{statementDate}}" bindchange="onDateChange">
+      <view class="picker">账单日期：{{statementDate}}</view>
+    </picker>
+    <button class="btn-primary" bindtap="chooseFile">选择 CSV 并导入</button>
+    <view wx:if="{{uploadStatus}}" class="status">{{uploadStatus}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">通过授权同步</view>
+    <input class="input" placeholder="授权ID" bindinput="onAuthInput" value="{{authorizationId}}" />
+    <picker mode="date" value="{{authDate}}" bindchange="onAuthDateChange">
+      <view class="picker">账单日期：{{authDate}}</view>
+    </picker>
+    <button class="btn-primary" bindtap="importByAuthorization">开始同步</button>
+  </view>
+</view>

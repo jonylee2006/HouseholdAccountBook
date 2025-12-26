@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="card">
+    <view class="summary-title">今日支出</view>
+    <view class="summary-value">￥{{todaySpent}}</view>
+  </view>
+  <view class="card">
+    <view class="summary-row">
+      <text>本月预算</text>
+      <text>￥{{monthBudget}}</text>
+    </view>
+    <view class="summary-row">
+      <text>剩余额度</text>
+      <text class="remain">￥{{monthRemaining}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="section-title">TOP3 分类</view>
+    <block wx:for="{{topCategories}}" wx:key="category">
+      <view class="category-item">
+        <text>{{item.category || '未分类'}}</text>
+        <text>￥{{item.amount}}</text>
+      </view>
+    </block>
+  </view>
+  <button class="btn-primary" bindtap="goLedgerDetail">查看流水</button>
+</view>
